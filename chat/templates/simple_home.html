@@ -1,0 +1,59 @@
+{% load static %} 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <textarea id="clog" cols="50" rows="10"></textarea><hr>
+    <input id="me" type="hidden" value='{{user.username}}'>
+    <form id='form' method="POST">
+        {% csrf_token %}
+        <input id="msg" type="text" size="50">
+        <input id="send" type="submit">
+    </form>
+    <script src="{% static 'js/jquery.min.js' %}"></script>
+    <script>
+        var me = $('#me')
+        var clog = $('#clog')
+        var msg = $('#msg')
+        var form = $('#form')
+        var data_sent
+        var data_recvd
+        // Create a new WebSocket
+        var ws = new WebSocket('ws://' + window.location.host + window.location.pathname)
+
+        // Send a new message when the WebSocket opens
+        ws.onopen = function(self) {
+            form.submit(function(self){
+                self.preventDefault()
+                var path = window.location.pathname.split('/')
+                var msg_dict = {'message':msg.val(),'sender':'unknown'}
+                data_sent = JSON.stringify(msg_dict)
+                ws.send(data_sent)
+
+                form[0].reset()
+            })
+        }
+        // Make it show an alert when a message is received
+        ws.onmessage = function(self){ 
+            data_recvd = JSON.parse(self.data)
+
+            clog.append(data_recvd.message+' from '+data_recvd.sender+'\n')
+
+            // var sender = data_recvd.sender
+            // if (me.val() == sender){
+            //     clog.append(data_recvd.message+' from '+data_recvd.sender+'\n')
+            // }
+            // else{
+            //     clog.append('     '+data_recvd.message+' from '+data_recvd.sender+'\n')
+            // }
+            
+        }
+
+    </script> 
+
+</body>
+</html>
